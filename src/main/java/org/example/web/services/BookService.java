@@ -40,13 +40,21 @@ public class BookService {
         repository.save(book);
     }
 
-    public boolean removeBook(Integer id) {
+    public boolean removeBook(String id) {
         return repository.removeById(id);
     }
 
     public void removeByRegexp(String regexp) throws SearchException {
         SearchEntity search = SearchBookUtil.createSearchEntity(regexp);
         repository.removeByField(search);
+    }
+
+    public void defaultInit(){
+        logger.info("default INIT in book service bean");
+    }
+
+    public void defaultDestroy(){
+        logger.info("default DESTROY in book service bean");
     }
 
 
