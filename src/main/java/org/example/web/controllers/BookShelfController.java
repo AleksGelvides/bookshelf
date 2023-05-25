@@ -2,13 +2,19 @@ package org.example.web.controllers;
 
 import org.apache.log4j.Logger;
 import org.example.web.dto.Book;
+import org.example.web.dto.BookRemoveDto;
 import org.example.web.exception.ValidationException;
 import org.example.web.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+
 
 @Controller
 @RequestMapping("books")
@@ -26,6 +32,7 @@ public class BookShelfController {
     public String books(Model model) {
         logger.info(this.toString());
         model.addAttribute("book", new Book());
+        model.addAttribute("bookRemove", new BookRemoveDto());
         model.addAttribute("bookList", bookService.getAll());
         return "book_shelf";
     }
@@ -42,13 +49,12 @@ public class BookShelfController {
     }
 
     @PostMapping("/remove")
-    public String removeBook(@RequestParam("bookId") String bookId, Model model) {
-        boolean removed = bookService.removeBook(bookId);
-        if (removed) {
-            return "redirect:/books/shelf";
-        } else {
+    public String removeBook(@Valid BookRemoveDto bookRemoveDto, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
             return books(model);
         }
+        bookService.removeBook(bookRemoveDto.getId());
+        return "redirect:/books/shelf";
     }
 
     @PostMapping("removeByRegex")
