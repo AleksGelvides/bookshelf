@@ -32,7 +32,7 @@ public class BookShelfController {
     public String books(Model model) {
         logger.info(this.toString());
         model.addAttribute("book", new Book());
-        model.addAttribute("bookRemove", new BookRemoveDto());
+        model.addAttribute("bookRemoveDto", new BookRemoveDto());
         model.addAttribute("bookList", bookService.getAll());
         return "book_shelf";
     }
@@ -51,7 +51,9 @@ public class BookShelfController {
     @PostMapping("/remove")
     public String removeBook(@Valid BookRemoveDto bookRemoveDto, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
-            return books(model);
+            model.addAttribute("book", new Book());
+            model.addAttribute("bookList", bookService.getAll());
+            return "book_shelf";
         }
         bookService.removeBook(bookRemoveDto.getId());
         return "redirect:/books/shelf";
