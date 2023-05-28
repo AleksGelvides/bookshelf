@@ -12,6 +12,6 @@ public class LoginService {
     private Logger logger = Logger.getLogger(LoginController.class);
     public boolean authenticate(LoginForm loginForm) {
         logger.info("auth with user-form: " + loginForm);
-        return loginForm.getLogin().equals("root") && loginForm.getPassword().equals("111");
+        return loginForm.getUsername().equals("root") && loginForm.getPassword().equals("111");
     }
 }
