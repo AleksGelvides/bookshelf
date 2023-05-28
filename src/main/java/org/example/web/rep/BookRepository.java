@@ -3,74 +3,92 @@ package org.example.web.rep;
 import org.apache.log4j.Logger;
 import org.example.web.dto.Book;
 import org.example.web.dto.SearchEntity;
-import org.example.web.services.IdProvider;
+import org.example.web.exception.SearchException;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.CollectionUtils;
 
+import java.sql.ResultSet;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
 public class BookRepository implements ProjectRepository<Book>, ApplicationContextAware {
 
+    private final String FIELD_ID = "id";
     private final String FIELD_TITLE = "title";
     private final String FIELD_AUTHOR = "author";
     private final String FIELD_SIZE = "size";
     private final Logger logger = Logger.getLogger(BookRepository.class);
-
     private ApplicationContext context;
-    private List<Book> repo = new ArrayList<Book>();
+
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public BookRepository(NamedParameterJdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
 
     public List<Book> getAll() {
-        return new ArrayList<Book>(repo);
+        List<Book> books = jdbcTemplate.query("SELECT * FROM BOOKS", (ResultSet rs, int rowNum) -> {
+            Book book = new Book();
+            book.setId(rs.getInt(FIELD_ID));
+            book.setAuthor(rs.getString(FIELD_AUTHOR));
+            book.setTitle(rs.getString(FIELD_TITLE));
+            book.setSize(rs.getInt(FIELD_SIZE));
+            return book;
+        });
+        return books;
     }
 
     public void save(Book book) {
-        book.setId(context.getBean(IdProvider.class).provideId(book));
+        MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+        parameterSource.addValue(FIELD_AUTHOR, book.getAuthor());
+        parameterSource.addValue(FIELD_TITLE, book.getTitle());
+        parameterSource.addValue(FIELD_SIZE, book.getSize());
+        jdbcTemplate.update("INSERT INTO BOOKS(AUTHOR, TITLE, SIZE) VALUES(:author, :title, :size)",
+                parameterSource);
         logger.info("store new book with id: " + book.getId());
-        repo.add(book);
     }
 
     @Override
-    public boolean removeById(String id) {
-        ListIterator<Book> iter = this.repo.listIterator();
-        while (iter.hasNext()) {
-            Book book = iter.next();
-            if (book.getId().equals(id)) {
-                iter.remove();
-                return true;
-            }
-        }
-        return false;
+    public boolean removeById(Integer id) {
+        MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+        parameterSource.addValue(FIELD_ID, id);
+        int result = jdbcTemplate.update("DELETE FROM BOOKS WHERE ID = :id", parameterSource);
+        logger.info("remove book completed");
+        return result > 0;
     }
 
     @Override
     public void removeByField(SearchEntity entity) {
         List<Book> removeList = null;
-        switch (entity.getFieldName()) {
-            case FIELD_TITLE:
-                removeList = this.repo.stream()
-                        .filter(book -> book.getTitle().equals(entity.getFieldValue()))
-                        .collect(Collectors.toList());
-                break;
-            case FIELD_AUTHOR:
-                removeList = this.repo.stream()
-                        .filter(book -> book.getAuthor().equals(entity.getFieldValue()))
-                        .collect(Collectors.toList());
-                break;
-            case FIELD_SIZE:
-                removeList = this.repo.stream()
-                        .filter(book -> book.getSize().equals(new Integer(entity.getFieldValue())))
-                        .collect(Collectors.toList());
-                break;
-        }
-
-        if (CollectionUtils.isEmpty(removeList))
-            return;
-        this.repo.removeAll(removeList);
+//        switch (entity.getFieldName()) {
+//            case FIELD_TITLE:
+//                removeList = this.repo.stream()
+//                        .filter(book -> book.getTitle().equals(entity.getFieldValue()))
+//                        .collect(Collectors.toList());
+//                break;
+//            case FIELD_AUTHOR:
+//                removeList = this.repo.stream()
+//                        .filter(book -> book.getAuthor().equals(entity.getFieldValue()))
+//                        .collect(Collectors.toList());
+//                break;
+//            case FIELD_SIZE:
+//                removeList = this.repo.stream()
+//                        .filter(book -> book.getSize().equals(new Integer(entity.getFieldValue())))
+//                        .collect(Collectors.toList());
+//                break;
+//        }
+//
+//        if (CollectionUtils.isEmpty(removeList))
+//            return;
+//        this.repo.removeAll(removeList);
     }
 
 

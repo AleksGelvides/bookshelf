@@ -11,7 +11,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Book {
-    private String id;
+    private Integer id;
     private String author;
     private String title;
     @Digits(integer = 4, fraction = 0)

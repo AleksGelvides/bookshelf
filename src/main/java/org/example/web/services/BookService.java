@@ -40,7 +40,7 @@ public class BookService {
         repository.save(book);
     }
 
-    public boolean removeBook(String id) {
+    public boolean removeBook(Integer id) {
         return repository.removeById(id);
     }
 

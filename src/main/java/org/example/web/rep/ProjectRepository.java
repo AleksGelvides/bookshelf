@@ -9,7 +9,7 @@ public interface ProjectRepository<T> {
     List<T> getAll();
     void save(T t);
 
-    boolean removeById(String id);
+    boolean removeById(Integer id);
 
     void removeByField(SearchEntity search);
 }
