@@ -2,6 +2,7 @@ package org.example.web.services;
 
 import org.example.web.dto.Book;
 import org.example.web.dto.SearchEntity;
+import org.example.web.exception.RegexpException;
 import org.example.web.exception.SearchException;
 import org.example.web.exception.ValidationException;
 import org.example.web.rep.BookRepository;
@@ -44,7 +45,7 @@ public class BookService {
         return repository.removeById(id);
     }
 
-    public void removeByRegexp(String regexp) throws SearchException {
+    public void removeByRegexp(String regexp) throws RegexpException {
         SearchEntity search = SearchBookUtil.createSearchEntity(regexp);
         repository.removeByField(search);
     }
