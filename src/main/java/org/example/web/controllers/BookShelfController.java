@@ -12,8 +12,13 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
 
 
 @Controller
@@ -47,6 +52,27 @@ public class BookShelfController {
         }
         bookService.saveBook(book);
         logger.info("Current repository size: " + bookService.getAll().size());
+        return "redirect:/books/shelf";
+    }
+
+    @PostMapping("/uploadFile")
+    public String uploadFile(@RequestParam("file") MultipartFile file) throws Exception {
+        String name = file.getOriginalFilename();
+        byte[] bytes = file.getBytes();
+
+        String rootPath = System.getProperty("catalina.home");
+        File dir = new File(rootPath + File.separator + "external_uploads");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        File serverFile = new File(dir.getAbsolutePath() + File.separator + name);
+        BufferedOutputStream stream = new BufferedOutputStream(Files.newOutputStream(serverFile.toPath()));
+        stream.write(bytes);
+        stream.close();
+
+        logger.info("new file saved at: " + serverFile.getAbsolutePath());
+
         return "redirect:/books/shelf";
     }
 

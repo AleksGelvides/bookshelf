@@ -89,6 +89,15 @@
                 <p>Example: "size: 10" or "author: Tolkien" or "title: lotr"</p>
             </form>
 
+            <form method="post" th:action="@{/books/uploadFile}" enctype="multipart/form-data">
+                <table>
+                    <tr>
+                        <td><input type="file" name="file"></td>
+                        <td><input type="submit" value="Upload"></td>
+                    </tr>
+                </table>
+            </form>
+
             <table id="books">
                 <tr>
                     <th>id</th>
