@@ -38,11 +38,12 @@ public class BookShelfController {
     }
 
     @PostMapping("/save")
-    public String saveBook(Book book, Model model) {
-        try {
-            bookService.saveBook(book);
-        } catch (ValidationException e) {
-            return books(model);
+    public String saveBook(@Valid Book book, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("book", book);
+            model.addAttribute("bookRemoveDto", new BookRemoveDto());
+            model.addAttribute("bookList", bookService.getAll());
+            return "book_shelf";
         }
         logger.info("Current repository size: " + bookService.getAll().size());
         return "redirect:/books/shelf";

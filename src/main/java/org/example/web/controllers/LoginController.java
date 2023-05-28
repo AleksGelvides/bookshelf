@@ -41,4 +41,9 @@ public class LoginController {
             throw new BookShelfLoginException("Invalid username or password");
         }
     }
+    @ExceptionHandler(BookShelfLoginException.class)
+    public String handleError(Model model, Exception exception) {
+        model.addAttribute("errorMessage", exception.getMessage());
+        return "error/404";
+    }
 }
