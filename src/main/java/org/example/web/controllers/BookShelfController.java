@@ -2,11 +2,13 @@ package org.example.web.controllers;
 
 import org.apache.log4j.Logger;
 import org.example.web.dto.Book;
-import org.example.web.dto.BookRemoveDto;
+import org.example.web.dto.removeDtos.BookRemoveToId;
+import org.example.web.dto.removeDtos.BookRemoveToRegexp;
 import org.example.web.exception.RegexpException;
 import org.example.web.exception.ValidationException;
 import org.example.web.services.BookService;
 import org.example.web.services.IoService;
+import org.h2.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -17,12 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
-import java.io.BufferedOutputStream;
-import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
 
 
 @Controller
@@ -44,7 +41,8 @@ public class BookShelfController {
     public String books(Model model) {
         logger.info(this.toString());
         model.addAttribute("book", new Book());
-        model.addAttribute("bookRemoveDto", new BookRemoveDto());
+        model.addAttribute("bookRemoveToId", new BookRemoveToId());
+        model.addAttribute("bookRemoveToRegexp", new BookRemoveToRegexp());
         model.addAttribute("bookList", bookService.getAll());
         return "book_shelf";
     }
@@ -53,7 +51,8 @@ public class BookShelfController {
     public String saveBook(@Valid Book book, BindingResult bindingResult, Model model) throws ValidationException {
         if (bindingResult.hasErrors()) {
             model.addAttribute("book", book);
-            model.addAttribute("bookRemoveDto", new BookRemoveDto());
+            model.addAttribute("bookRemoveToId", new BookRemoveToId());
+            model.addAttribute("bookRemoveToRegexp", new BookRemoveToRegexp());
             model.addAttribute("bookList", bookService.getAll());
             return "book_shelf";
         }
@@ -69,24 +68,30 @@ public class BookShelfController {
     }
 
     @PostMapping("/remove")
-    public String removeBook(@Valid BookRemoveDto bookRemoveDto, BindingResult bindingResult, Model model) {
+    public String removeBook(@Valid BookRemoveToId bookRemoveToId, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("book", new Book());
+            model.addAttribute("bookRemoveToId", bookRemoveToId);
+            model.addAttribute("bookRemoveToRegexp", new BookRemoveToRegexp());
             model.addAttribute("bookList", bookService.getAll());
             return "book_shelf";
         }
-        bookService.removeBook(bookRemoveDto.getId());
+        bookService.removeBook(bookRemoveToId.getId());
         return "redirect:/books/shelf";
     }
 
     @PostMapping("removeByRegex")
-    public String removeBuRegexp(@Valid BookRemoveDto bookRemoveDto,
+    public String removeBuRegexp(@Valid BookRemoveToRegexp bookRemoveToRegexp,
                                  BindingResult bindingResult,
                                  Model model) {
         try {
-            bookService.removeByRegexp(bookRemoveDto.getRegexp());
+            if (StringUtils.isNullOrEmpty(bookRemoveToRegexp.getRegexp()))
+                throw new RegexpException("regexp cannot be null");
+            bookService.removeByRegexp(bookRemoveToRegexp.getRegexp());
         } catch (RegexpException e) {
             bindingResult.addError(new ObjectError("regexp", e.getMessage()));
+            model.addAttribute("bookRemoveToId", new BookRemoveToId());
+            model.addAttribute("bookRemoveToRegexp", bookRemoveToRegexp);
             model.addAttribute("book", new Book());
             model.addAttribute("bookList", bookService.getAll());
             return "book_shelf";

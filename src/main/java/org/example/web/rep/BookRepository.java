@@ -3,7 +3,6 @@ package org.example.web.rep;
 import org.apache.log4j.Logger;
 import org.example.web.dto.Book;
 import org.example.web.dto.SearchEntity;
-import org.example.web.exception.SearchException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 public class BookRepository implements ProjectRepository<Book>, ApplicationContextAware {
@@ -66,29 +64,13 @@ public class BookRepository implements ProjectRepository<Book>, ApplicationConte
     }
 
     @Override
-    public void removeByField(SearchEntity entity) {
-        List<Book> removeList = null;
-//        switch (entity.getFieldName()) {
-//            case FIELD_TITLE:
-//                removeList = this.repo.stream()
-//                        .filter(book -> book.getTitle().equals(entity.getFieldValue()))
-//                        .collect(Collectors.toList());
-//                break;
-//            case FIELD_AUTHOR:
-//                removeList = this.repo.stream()
-//                        .filter(book -> book.getAuthor().equals(entity.getFieldValue()))
-//                        .collect(Collectors.toList());
-//                break;
-//            case FIELD_SIZE:
-//                removeList = this.repo.stream()
-//                        .filter(book -> book.getSize().equals(new Integer(entity.getFieldValue())))
-//                        .collect(Collectors.toList());
-//                break;
-//        }
-//
-//        if (CollectionUtils.isEmpty(removeList))
-//            return;
-//        this.repo.removeAll(removeList);
+    public boolean removeByField(SearchEntity entity) {
+        String field = entity.getFieldName();
+        String sql = String.format("DELETE FROM BOOKS WHERE %s = :%s", field, field);
+        MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+        parameterSource.addValue(entity.getFieldName(), entity.getFieldValue());
+        int result = jdbcTemplate.update(sql, parameterSource);
+        return result > 0;
     }
 
 

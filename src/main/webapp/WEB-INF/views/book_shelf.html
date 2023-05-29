@@ -60,7 +60,7 @@
             </form>
 
 
-            <form method="post" th:action="@{/books/remove}" th:object="${bookRemoveDto}">
+            <form method="post" th:action="@{/books/remove}" th:object="${bookRemoveToId}">
                 <table>
                     <tr>
                         <td>
@@ -77,16 +77,16 @@
             </form>
 
 
-            <form method="post" th:action="@{/books/removeByRegex}" th:object="${bookRemoveDto}">
+            <form method="post" th:action="@{/books/removeByRegex}" th:object="${bookRemoveToRegexp}">
                 <table>
                     <tr>
                         <td>
-                            <input type="text" placeholder="regexp" th:name="*{regexp}">
+                            <input type="text" placeholder="regexp" th:field="*{regexp}">
                         </td>
                         <td>
                             <input type="submit" value="remove by regex">
                         </td>
-                        <td th:if="${#fields.hasErrors('regexp')}">
+                        <td th:if="${#fields.hasErrors()}">
                             <p th:text="${#fields.errors().get(#fields.errors().size() - 1)}"></p>
                         </td>
                     </tr>
